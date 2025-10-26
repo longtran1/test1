@@ -221,6 +221,10 @@ if (!$x86Profile) {
 $jsonStr = $j | ConvertTo-Json -Depth 99
 [System.IO.File]::WriteAllText("$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\Settings.json", $jsonStr)
 
+Set-SmbClientConfiguration -EnableSecuritySignature $false -Confirm:$false
+Set-SmbClientConfiguration -RequireSecuritySignature $false -Confirm:$false
+Set-SmbClientConfiguration -EnableInsecureGuestLogons $true -Confirm:$false
+
 
 		</File>
 		<File path="C:\Windows\Setup\Scripts\Specialize.ps1">
