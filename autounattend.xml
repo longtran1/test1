@@ -160,6 +160,29 @@ $exe = "$env:LOCALAPPDATA\Microsoft\WindowsApps\winget.exe";
 reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /F /V ShellState /T REG_BINARY /D 240000001C28000000000000000000000000000001000000130000000000000062000000
 reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\PasswordLess\Device" /v "DevicePasswordLessBuildVersion" /d 0 /f /t REG_DWORD
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\condrv" /v "Start" /d 2 /f /t REG_DWORD
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoUpdate /d 1 /f /t REG_DWORD
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v DisableFileSyncNGSC /d 1 /f /t REG_DWORD
+
+netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes
+md "C:\Development\Automation" -Force
+
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /d 0 /f /t REG_DWORD
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowTaskViewButton /d 0 /f /t REG_DWORD
+
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "AlwaysShowMenus" /t REG_DWORD /d 1 /f
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "Hidden" /t REG_DWORD /d 1 /f
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "SharingWizardOn" /t REG_DWORD /d 0 /f
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "HideFileExt" /t REG_DWORD /d 0 /f
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "NavPaneExpandToCurrentFolder" /t REG_DWORD /d 1 /f
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "NavPaneShowAllFolders" /t REG_DWORD /d 1 /f
+
+reg add "HKEY_CURRENT_USER\Software\Policies\Microsoft\Internet Explorer\Main" /v DisableFirstRunCustomize /t REG_DWORD /d 1 /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap" /v "AutoDetect" /t REG_DWORD /d 1 /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap" /v "IntranetName" /t REG_DWORD /d 0 /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap" /v "ProxyByPass" /t REG_DWORD /d 0 /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap" /v "UNCAsIntranet" /t REG_DWORD /d 0 /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Ranges\Range1" /v "file" /t REG_DWORD /d 1 /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Ranges\Range1" /v ":Range" /t REG_SZ /d "*.*.*.*" /f
 
 while( $true ) {
     if( $exe | Test-Path ) {
@@ -173,6 +196,32 @@ while( $true ) {
     }
     Start-Sleep -Seconds 1;
 }
+
+$j = Get-Content "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\Settings.json" | ConvertFrom-Json
+if ($j.'largePasteWarning' -eq $null) {
+	$j | Add-Member -MemberType NoteProperty -Name 'largePasteWarning' -Value $false
+}
+if ($j.'multiLinePasteWarning' -eq $null) {
+	$j | Add-Member -MemberType NoteProperty -Name 'multiLinePasteWarning' -Value $false
+}
+
+$list = [System.Collections.Generic.List[object]]$j.profiles.list
+$x86Profile = $j.profiles.list | Where-Object {$_.name -eq 'Windows PowerShell (x86)'}
+if (!$x86Profile) {	
+	$x86Profile = $j.profiles.list[0].PSObject.Copy()
+	$x86Profile.name = 'Windows PowerShell (x86)'
+	$x86Profile.commandline = $x86Profile.commandline.Replace('System32', 'SysWOW64')
+	$x86Profile.guid = '{{{0}}}' -f (New-Guid).Guid
+	$x86Profile | Add-Member -MemberType NoteProperty -Name icon -Value 'ms-appx:///ProfileIcons/{61c54bbd-c2c6-5271-96e7-009a87ff44bf}.png'
+	$x86Profile | Add-Member -MemberType NoteProperty -Name startingDirectory -Value '%UserProfile%'
+	$list.Insert(1, $x86Profile)
+	$j.profiles.list = $list
+}
+
+$jsonStr = $j | ConvertTo-Json -Depth 99
+[System.IO.File]::WriteAllText("$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\Settings.json", $jsonStr)
+
+
 		</File>
 		<File path="C:\Windows\Setup\Scripts\Specialize.ps1">
 $scripts = @(
