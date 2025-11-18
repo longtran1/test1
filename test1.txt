@@ -1,1 +1,6 @@
-
+@(1..5) | ForEach-Object {
+	Write-Host -n -f Cyan ($_.ToString().PadLeft(2, ' '))
+	Start-Process -Wait -FilePath 'C:\ProgramData\CAM Commerce Solutions\X-Charge\Application\XCharge.exe' -ArgumentList ('/TRANSACTIONTYPE:Purchase /AMOUNT:1.00 /XCACCOUNTID:XAWUJkaYV9mJN /AUTOPROCESS /SMARTAUTOPROCESS /AUTOCLOSE /NORESULTDIALOG /EXITWITHESCAPEKEY /USERID:system /PASSWORD:System12345! /RESULTFILE:{0}\ResultFile.txt' -f $env:TEMP)
+	Write-Host -f DarkGray (' ::: {0}' -f (Get-Content "$env:TEMP\ResultFile.txt" | Select-Object -First 1))
+	Start-Sleep 3
+}
