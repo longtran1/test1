@@ -1,6 +1,20 @@
-@(1..5) | ForEach-Object {
-	Write-Host -n -f Cyan ($_.ToString().PadLeft(2, ' '))
-	Start-Process -Wait -FilePath 'C:\ProgramData\CAM Commerce Solutions\X-Charge\Application\XCharge.exe' -ArgumentList ('/TRANSACTIONTYPE:Purchase /AMOUNT:1.00 /SMARTAUTOPROCESS /AUTOCLOSE /NORESULTDIALOG /EXITWITHESCAPEKEY /USERID:system /PASSWORD:System12345! /RESULTFILE:{0}\ResultFile.txt' -f $env:TEMP)
-	Write-Host -f DarkGray (' ::: {0}' -f (Get-Content "$env:TEMP\ResultFile.txt" | Select-Object -First 1))
-	Start-Sleep 3
-}
+create a powershell script to do the following 3 times:
+
+path to app        : 'C:\Development\myApp\myApp.exe'
+path to configFile : 'C:\Development\myApp\myConfig.xml'
+TestRail userName  : 'changeMe'
+TestRail password  : 'changeMe'
+TestRail runId     : '1234'
+
+Prior to starting the loop, note the starting time
+Run the app with arguments '/runId:{runId} /userName:{userName} /password:{password} /configFile:{configFile}'
+Wait for the existence of 'AutomationDone.txt' in the app's directory
+Exit the loop if the time elapsed is greater than 23 hours
+
+
+######################################
+
+also consider the following and act accordingly:
+
+- the app process may hang or crash before the run is completed. restart it when it does.
+- this is a non-UI process, so monitoring it by periodically polling the process's memory (using Process.WorkingSet64) to determine if it has crashed. A stable, non-changing memory usage for an extended period might indicate a hang.
