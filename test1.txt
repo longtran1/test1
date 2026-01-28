@@ -1,3 +1,38 @@
+public static void CheckIfRcmVersionFolderExists(XmlNode task)
+{
+    XmlNode DataField = task.ChildNodes[0];
+    if (DataField != null)
+    {
+        string programName = DataField["ProgramName"].InnerText;
+        string ProgramInstallPath = DataField["ProgramInstallPath"].InnerText;
+        InstalledPrograms programs = new InstalledPrograms();
+        List<ProgramInfo> installedPrograms = programs.GetInstalledPrograms();
+        int index = installedPrograms.FindIndex(p => p.DisplayName == programName);
+        if (index > 0)
+        {
+            ProgramInfo programInfo = installedPrograms[index];
+            string VersionFolder = Path.Combine(ProgramInstallPath, programInfo.Version);
+            if (Directory.Exists(VersionFolder))
+            {
+                RunData.RCMVersion = programInfo.Version;
+                RunData.EEResult = "Version folder found : " + VersionFolder;
+            }
+            else
+            {
+                RunData.EEResult = "Vesion folder not found : " + VersionFolder;
+            }
+            RunData.ResultToEvaluate = RunData.EEResult;
+        }
+        else
+        {
+            RunData.EEResult = programName + " not installed.";
+            RunData.ResultToEvaluate = RunData.EEResult;
+        }
+    }
+}
+
+
+
 create a powershell script to do the following 3 times:
 
 path to app        : 'C:\Development\myApp\myApp.exe'
